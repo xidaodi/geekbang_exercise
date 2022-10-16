@@ -5,11 +5,13 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"runtime"
 )
 
 func main() {
 	fmt.Println("this is a http server exercise")
 	http.HandleFunc("/", helloHandler)
+	http.HandleFunc("/healthz", healthyCheck)
 	err := http.ListenAndServe(":80", nil)
 	if err != nil {
 		log.Fatal(err)
@@ -38,8 +40,18 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 
 		}
 		fmt.Println(str)
-		w.Header().Add(k, str)
+		//w.Header().Add(k, str)
+		w.Header().Set("client_"+k, str)
 
 	}
+	w.Header().Set("Go-Version", runtime.Version())
 
+	http_code := 200
+	w.WriteHeader(http_code)
+	fmt.Printf("client info { IP: %s, HTTP_CODE: %d }\n", r.RemoteAddr, http_code)
+
+}
+func healthyCheck(w http.ResponseWriter, req *http.Request) {
+	w.WriteHeader(200)
+	fmt.Fprintf(w, "StatusCode: %d\n", 200)
 }
